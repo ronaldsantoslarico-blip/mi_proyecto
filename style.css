@@ -1,0 +1,214 @@
+/* sistema_contador/static/style.css - VERSIÓN ELEGANTE Y FORMAL */
+
+/* FONDO */
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* NAVBAR FIJADO */
+.navbar {
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.3rem;
+    letter-spacing: 0.5px;
+}
+
+/* CONTENEDOR PRINCIPAL */
+.container {
+    background: white !important;
+    border-radius: 15px !important;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15) !important;
+    margin-top: 2rem !important;
+    margin-bottom: 2rem !important;
+    padding: 2.5rem !important;
+}
+
+/* COLORES DE TEXTO */
+h1, h2, h3, h4, h5, h6 {
+    color: #1a1a2e !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.5px;
+}
+
+p, span, div, td, th {
+    color: #4a4a6a !important;
+}
+
+/* CARDS */
+.card {
+    border: none !important;
+    border-radius: 12px !important;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08) !important;
+    margin-bottom: 1.5rem !important;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-3px);
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+    font-weight: 700 !important;
+    padding: 1.25rem !important;
+}
+
+/* BADGES */
+.badge {
+    font-size: 0.8em !important;
+    padding: 0.5em 0.8em !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px;
+}
+
+.bg-orange {
+    background-color: #fd7e14 !important;
+    color: white !important;
+}
+
+/* TABLAS */
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table th {
+    background-color: #f8f9fa !important;
+    color: #495057 !important;
+    font-weight: 700 !important;
+    border-top: 2px solid #dee2e6 !important;
+    border-bottom: 2px solid #dee2e6 !important;
+    padding: 1rem !important;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+}
+
+.table td {
+    border-bottom: 1px solid #f0f0f0 !important;
+    padding: 1rem !important;
+    vertical-align: middle;
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa !important;
+}
+
+/* BOTONES */
+.btn {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 0.65rem 1.5rem !important;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border: none !important;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #6a3f95 100%) !important;
+}
+
+/* COLORES DE ESTADO */
+.bg-success { 
+    background-color: #28a745 !important; 
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
+}
+
+.bg-warning { 
+    background-color: #ffc107 !important;
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important;
+    color: #000 !important; 
+}
+
+.bg-danger { 
+    background-color: #dc3545 !important;
+    background: linear-gradient(135deg, #dc3545 0%, #a02622 100%) !important;
+}
+
+.bg-info { 
+    background-color: #17a2b8 !important;
+    background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%) !important;
+}
+
+.bg-light {
+    background-color: #f8f9fa !important;
+}
+
+/* TEXTO BLANCO EN ELEMENTOS OSCUROS */
+.bg-success *,
+.bg-danger *,
+.bg-info * {
+    color: white !important;
+}
+
+/* FORM CONTROL */
+.form-control,
+.form-select {
+    border-radius: 8px !important;
+    border: 1px solid #e0e0e0 !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 0.5rem;
+}
+
+/* MODAL */
+.modal-content {
+    border: none !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
+}
+
+.modal-header {
+    border-bottom: 2px solid #f0f0f0 !important;
+    padding: 1.5rem !important;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .container {
+        padding: 1.5rem !important;
+    }
+    
+    .table th, .table td {
+        padding: 0.7rem !important;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem !important;
+        font-size: 0.9rem;
+    }
+}

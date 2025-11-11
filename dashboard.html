@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📊 Dashboard Sistema Contador</h2>
+    <button class="btn btn-success btn-lg" id="btnDescargarInforme" onclick="descargarInforme()">
+        <i class="fas fa-download me-2"></i> Descargar Informe 
+    </button>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h4>{{ total_clientes }}</h4>
+                <p>Total Clientes</p>
+            </div>
+        </div>
+    </div>
+    
+    {% for estado in estados_clientes %}
+    <div class="col-md-3">
+        <div class="card 
+            {% if estado.estado_actual == 'al_dia' %}bg-success
+            {% elif estado.estado_actual == 'retraso_leve' %}bg-warning
+            {% elif estado.estado_actual == 'retraso_grave' %}bg-orange
+            {% else %}bg-danger{% endif %} text-white">
+            <div class="card-body">
+                <h4>{{ estado.cantidad }}</h4>
+                <p>{{ estado.estado_actual|title }}</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Resumen de Pagos</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Estado</th>
+                            <th>Cantidad</th>
+                            <th>Monto Promedio (Bs.)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pago in resumen_pagos %}
+                        <tr>
+                            <td>
+                                <span class="badge 
+                                    {% if pago.estado == 'al_dia' %}bg-success
+                                    {% elif pago.estado == 'retraso_leve' %}bg-warning
+                                    {% elif pago.estado == 'retraso_grave' %}bg-orange
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ pago.estado|title }}
+                                </span>
+                            </td>
+                            <td>{{ pago.total }}</td>
+                            <td>Bs. {{ pago.monto_promedio }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">Clientes con Mayor Riesgo</h5>
+            </div>
+            <div class="card-body">
+                {% if clientes_riesgo %}
+                <div class="list-group">
+                    {% for cliente in clientes_riesgo %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ cliente.nombre }}</strong>
+                            <span class="badge bg-danger">{{ cliente.impagos }} impagos</span>
+                        </div>
+                        <small>Estado: 
+                            <span class="badge 
+                                {% if cliente.estado_actual == 'al_dia' %}bg-success
+                                {% elif cliente.estado_actual == 'retraso_leve' %}bg-warning
+                                {% elif cliente.estado_actual == 'retraso_grave' %}bg-orange
+                                {% else %}bg-danger{% endif %}">
+                                {{ cliente.estado_actual }}
+                            </span>
+                        </small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">No hay clientes con impagos</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5>Distribución de Estados</h5>
+                <img src="data:image/png;base64,{{ graph_url }}" class="img-fluid" alt="Gráfico">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function descargarInforme() {
+    const btn = document.getElementById('btnDescargarInforme');
+    const textoOriginal = btn.innerHTML;
+    
+    // Cambiar texto y estado del botón
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Generando...';
+    
+    // Hacer la solicitud al servidor
+    fetch('/api/descargar-informe-librerias')
+        .then(response => {
+            if (!response.ok) throw new Error('Error al descargar');
+            return response.blob();
+        })
+        .then(blob => {
+            // Crear un link temporal para descargar
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `INFORME_LIBRERIAS_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            // Restaurar botón
+            btn.disabled = false;
+            btn.innerHTML = textoOriginal;
+            
+            // Mostrar notificación de éxito
+            alert('✅ Informe descargado exitosamente');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            btn.disabled = false;
+            btn.innerHTML = textoOriginal;
+            alert('❌ Error al descargar el informe: ' + error.message);
+        });
+}
+</script>
+{% endblock %}

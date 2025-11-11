@@ -1,0 +1,597 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>💰 Gestión de Pagos</h2>
+
+<div class="row mb-4">
+    <div class="col">
+        <button class="btn btn-primary" onclick="mostrarModalAgregar()">
+            <i class="fas fa-plus me-2"></i>Agregar Pago
+        </button>
+    </div>
+</div>
+
+<!-- Modal para agregar/editar pago -->
+<div class="modal fade" id="modalPago" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalPagoTitulo">Agregar Nuevo Pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formPago">
+                    <input type="hidden" id="pago-id">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Cliente</label>
+                                <select class="form-select" id="cliente-id" required>
+                                    <option value="">Seleccionar cliente...</option>
+                                    {% for cliente in clientes %}
+                                    <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Mes</label>
+                                <select class="form-select" id="mes" required>
+                                    <option value="">Mes...</option>
+                                    {% for i in range(1, 13) %}
+                                    <option value="{{ i }}">{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Año</label>
+                                <input type="number" class="form-control" id="año" value="2024" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Estado</label>
+                                <select class="form-select" id="estado" required>
+                                    <option value="al_dia">Al día</option>
+                                    <option value="retraso_leve">Retraso leve</option>
+                                    <option value="retraso_grave">Retraso grave</option>
+                                    <option value="impago">Impago</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Monto (Bs.)</label>
+                                <input type="number" step="0.01" class="form-control" id="monto" placeholder="0.00" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcion" rows="2" placeholder="Descripción del pago..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarPago()">Guardar Pago</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información de Fecha de Hoy -->
+<div class="alert alert-info mb-4">
+    <i class="fas fa-calendar-alt me-2"></i>
+    <strong>Fecha actual:</strong> {{ fecha_hoy }}
+</div>
+
+<!-- Resumen por cliente -->
+<div class="row mb-4">
+    {% for cliente_info in pagos_por_cliente %}
+    <div class="col-md-6 mb-3">
+        <div class="card h-100 border-left-4 {% if cliente_info.deuda_hoy > 0 %}border-danger{% else %}border-success{% endif %}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h6 class="card-title mb-0"><i class="fas fa-user-circle me-2"></i>{{ cliente_info.cliente_nombre }}</h6>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="stat-box">
+                            <small class="text-muted">Pagos Realizados</small>
+                            <h5 class="mb-0">
+                                <span class="badge bg-success">{{ cliente_info.pagos_hechos }}</span>
+                                <small class="text-muted">/ {{ cliente_info.total_pagos }}</small>
+                            </h5>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stat-box">
+                            <small class="text-muted">Pagos Faltantes</small>
+                            <h5 class="mb-0">
+                                <span class="badge bg-warning">{{ cliente_info.pagos_faltantes }}</span>
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Deuda HOY ({{ fecha_hoy }})</small>
+                        <h6 class="text-danger fw-bold">Bs. {{ "%.2f"|format(cliente_info.deuda_hoy) }}</h6>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">¿Paga todo el?</small>
+                        {% if cliente_info.fecha_termina_prestamo %}
+                        <h6 class="text-primary fw-bold">{{ cliente_info.fecha_termina_prestamo }}</h6>
+                        {% else %}
+                        <h6 class="text-muted">No disponible</h6>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="divider my-2"></div>
+                
+                <div class="row text-center pt-2">
+                    <div class="col-4">
+                        <small class="text-muted">Al Día</small>
+                        <div class="fw-bold text-success">{{ cliente_info.pagos_al_dia }}</div>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-muted">Retraso</small>
+                        <div class="fw-bold text-warning">{{ cliente_info.pagos_en_retraso }}</div>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-muted">Impago</small>
+                        <div class="fw-bold text-danger">{{ cliente_info.pagos_impago }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Lista de pagos organizados por cliente -->
+<div class="card">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Historial Detallado de Pagos</h5>
+        <span class="badge bg-light text-dark">{{ pagos|length }} pagos totales</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="accordion" id="acordeonPagos">
+        {% for cliente_info in pagos_por_cliente %}
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                            data-bs-target="#pagosCliente{{ cliente_info.cliente_id }}" 
+                            aria-expanded="false" aria-controls="pagosCliente{{ cliente_info.cliente_id }}">
+                        <div class="w-100">
+                            <div class="d-flex justify-content-between align-items-center w-100">
+                                <!-- Información Izquierda -->
+                                <div class="flex-grow-1">
+                                    <strong class="d-block mb-1">
+                                        <i class="fas fa-user me-2"></i>{{ cliente_info.cliente_nombre }}
+                                    </strong>
+                                    <small class="text-muted">
+                                        <span class="badge bg-success-light">{{ cliente_info.pagos_hechos }}/{{ cliente_info.total_pagos }} pagados</span>
+                                        <span class="badge bg-warning-light">{{ cliente_info.pagos_faltantes }} faltantes</span>
+                                        {% if cliente_info.pagos_en_retraso > 0 %}
+                                        <span class="badge bg-danger-light">{{ cliente_info.pagos_en_retraso }} en retraso</span>
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                
+                                <!-- Información Centro -->
+                                <div class="text-center mx-4">
+                                    <small class="text-muted d-block">Próximo Pago</small>
+                                    {% if cliente_info.proximo_pago %}
+                                    <strong class="text-primary d-block mb-1">{{ cliente_info.proximo_pago }}</strong>
+                                    <small class="text-muted">Bs. {{ "%.2f"|format(cliente_info.proximo_pago_monto) }}</small>
+                                    {% else %}
+                                    <small class="text-muted">Sin datos</small>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Información Centro-Derecha -->
+                                <div class="text-center mx-4">
+                                    <small class="text-muted d-block">Deuda HOY</small>
+                                    <strong class="text-danger d-block">Bs. {{ "%.2f"|format(cliente_info.deuda_hoy) }}</strong>
+                                </div>
+                                
+                                <!-- Información Derecha -->
+                                <div class="text-end ms-4 pe-2">
+                                    <small class="text-muted d-block">Paga todo el</small>
+                                    {% if cliente_info.fecha_termina_prestamo %}
+                                    <strong class="text-primary">{{ cliente_info.fecha_termina_prestamo }}</strong>
+                                    {% else %}
+                                    <small class="text-muted">N/D</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </button>
+                </h2>
+                <div id="pagosCliente{{ cliente_info.cliente_id }}" class="accordion-collapse collapse" 
+                     data-bs-parent="#acordeonPagos">
+                    <div class="accordion-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="100">Mes/Año</th>
+                                        <th width="120">Estado</th>
+                                        <th width="120">Monto</th>
+                                        <th>Descripción</th>
+                                        <th width="100" class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pago in cliente_info.pagos %}
+                                    <tr>
+                                        <td>
+                                            <strong>
+                                                {% if pago.mes == 1 %}Ene
+                                                {% elif pago.mes == 2 %}Feb
+                                                {% elif pago.mes == 3 %}Mar
+                                                {% elif pago.mes == 4 %}Abr
+                                                {% elif pago.mes == 5 %}May
+                                                {% elif pago.mes == 6 %}Jun
+                                                {% elif pago.mes == 7 %}Jul
+                                                {% elif pago.mes == 8 %}Ago
+                                                {% elif pago.mes == 9 %}Sep
+                                                {% elif pago.mes == 10 %}Oct
+                                                {% elif pago.mes == 11 %}Nov
+                                                {% else %}Dic
+                                                {% endif %}/{{ pago.año }}
+                                            </strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if pago.estado == 'al_dia' %}bg-success
+                                                {% elif pago.estado == 'retraso_leve' %}bg-warning
+                                                {% elif pago.estado == 'retraso_grave' %}bg-orange
+                                                {% else %}bg-danger{% endif %}">
+                                                {% if pago.estado == 'al_dia' %}✓ Al Día
+                                                {% elif pago.estado == 'retraso_leve' %}⚠ Retraso Leve
+                                                {% elif pago.estado == 'retraso_grave' %}✗ Retraso Grave
+                                                {% else %}✗ Impago
+                                                {% endif %}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong>Bs. {{ "%.2f"|format(pago.monto) }}</strong>
+                                        </td>
+                                        <td>
+                                            <small>{{ pago.descripcion or 'Pago mensual' }}</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary btn-editar-pago" 
+                                                        data-id="{{ pago.id }}"
+                                                        data-cliente-id="{{ pago.cliente_id }}"
+                                                        data-mes="{{ pago.mes }}"
+                                                        data-año="{{ pago.año }}"
+                                                        data-estado="{{ pago.estado }}"
+                                                        data-monto="{{ pago.monto }}"
+                                                        data-descripcion="{{ pago.descripcion or '' }}"
+                                                        title="Editar pago">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-eliminar-pago" 
+                                                        data-id="{{ pago.id }}"
+                                                        title="Eliminar pago">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+        
+        {% if not pagos %}
+        <div class="text-center py-5">
+            <i class="fas fa-money-bill-wave fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No hay pagos registrados</h5>
+            <p class="text-muted">Agrega el primer pago usando el botón superior</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Filtros rápidos -->
+<div class="card mt-4">
+    <div class="card-header bg-light">
+        <h6 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros Rápidos</h6>
+    </div>
+    <div class="card-body">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="filtrarPorEstado('')">
+                Todos ({{ pagos|length }})
+            </button>
+            <button type="button" class="btn btn-outline-success btn-sm" onclick="filtrarPorEstado('al_dia')">
+                Al Día ({{ total_al_dia }})
+            </button>
+            <button type="button" class="btn btn-outline-warning btn-sm" onclick="filtrarPorEstado('retraso_leve')">
+                Retraso Leve ({{ total_retraso_leve }})
+            </button>
+            <button type="button" class="btn btn-outline-orange btn-sm" onclick="filtrarPorEstado('retraso_grave')">
+                Retraso Grave ({{ total_retraso_grave }})
+            </button>
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="filtrarPorEstado('impago')">
+                Impago ({{ total_impago }})
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-orange {
+    background-color: #fd7e14 !important;
+}
+.btn-outline-orange {
+    color: #fd7e14;
+    border-color: #fd7e14;
+}
+.btn-outline-orange:hover {
+    background-color: #fd7e14;
+    border-color: #fd7e14;
+    color: white;
+}
+.table th {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.table td {
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+
+/* Estilos para acordeón de pagos */
+.accordion-button {
+    padding: 1rem;
+    font-weight: 500;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #e7f3ff;
+    color: #000;
+}
+
+.accordion-button:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.accordion-header button {
+    padding: 1rem;
+}
+
+#acordeonPagos .accordion-item {
+    border: 1px solid #dee2e6;
+    margin-bottom: 0;
+}
+
+#acordeonPagos .accordion-item:first-child {
+    border-top-left-radius: 0.375rem;
+    border-top-right-radius: 0.375rem;
+}
+
+#acordeonPagos .accordion-item:last-child {
+    border-bottom-left-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+}
+
+/* Resumen en el header del acordeón */
+.accordion-button .text-primary {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.accordion-button .text-danger {
+    font-size: 0.95rem;
+}
+
+/* Mejorar la visualización de la tabla dentro del acordeón */
+.accordion-body .table {
+    margin-bottom: 0;
+}
+
+.accordion-body .table thead {
+    background-color: #f8f9fa;
+    position: sticky;
+    top: 0;
+}
+
+/* Animación suave al expandir */
+.accordion-collapse {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Estilos para tarjetas de resumen mejorado */
+.card.border-left-4 {
+    border-left: 4px solid;
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+}
+
+.stat-box {
+    padding: 0.5rem 0;
+}
+
+.badge.bg-success-light {
+    background-color: #d4edda !important;
+    color: #155724;
+}
+
+.badge.bg-warning-light {
+    background-color: #fff3cd !important;
+    color: #856404;
+}
+
+.badge.bg-danger-light {
+    background-color: #f8d7da !important;
+    color: #721c24;
+}
+
+.divider {
+    border-top: 1px solid #dee2e6;
+}
+
+/* Mejorado: Header del acordeón con información detallada */
+.accordion-header button {
+    padding: 1.25rem;
+}
+
+.accordion-header button:not(.collapsed) {
+    background-color: #e7f3ff;
+    box-shadow: inset 0 -1px 0 rgba(0,0,0,.125);
+}
+
+/* Información en el header con mejor alineación */
+.accordion-header .text-center {
+    min-width: 150px;
+}
+
+.accordion-header .text-end {
+    min-width: 140px;
+}
+</style>
+
+<script>
+// Configurar event listeners cuando el documento esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    // Event listeners para botones editar pago
+    document.querySelectorAll('.btn-editar-pago').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const clienteId = this.getAttribute('data-cliente-id');
+            const mes = this.getAttribute('data-mes');
+            const año = this.getAttribute('data-año');
+            const estado = this.getAttribute('data-estado');
+            const monto = this.getAttribute('data-monto');
+            const descripcion = this.getAttribute('data-descripcion');
+            editarPago(id, clienteId, mes, año, estado, monto, descripcion);
+        });
+    });
+
+    // Event listeners para botones eliminar pago
+    document.querySelectorAll('.btn-eliminar-pago').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            eliminarPago(id);
+        });
+    });
+});
+
+function mostrarModalAgregar() {
+    document.getElementById('modalPagoTitulo').textContent = 'Agregar Nuevo Pago';
+    document.getElementById('formPago').reset();
+    document.getElementById('pago-id').value = '';
+    
+    // Mostrar modal
+    new bootstrap.Modal(document.getElementById('modalPago')).show();
+}
+
+function editarPago(id, clienteId, mes, año, estado, monto, descripcion) {
+    document.getElementById('modalPagoTitulo').textContent = 'Editar Pago';
+    document.getElementById('pago-id').value = id;
+    document.getElementById('cliente-id').value = clienteId;
+    document.getElementById('mes').value = mes;
+    document.getElementById('año').value = año;
+    document.getElementById('estado').value = estado;
+    document.getElementById('monto').value = monto;
+    document.getElementById('descripcion').value = descripcion;
+    
+    // Mostrar modal
+    new bootstrap.Modal(document.getElementById('modalPago')).show();
+}
+
+async function guardarPago() {
+    const formData = {
+        cliente_id: document.getElementById('cliente-id').value,
+        mes: document.getElementById('mes').value,
+        año: document.getElementById('año').value,
+        estado: document.getElementById('estado').value,
+        monto: parseFloat(document.getElementById('monto').value),
+        descripcion: document.getElementById('descripcion').value
+    };
+
+    const pagoId = document.getElementById('pago-id').value;
+    const url = pagoId ? `/api/pagos/${pagoId}` : '/api/pagos';
+    const method = pagoId ? 'PUT' : 'POST';
+
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Cerrar modal y recargar
+            bootstrap.Modal.getInstance(document.getElementById('modalPago')).hide();
+            location.reload();
+        } else {
+            alert('Error: ' + result.mensaje);
+        }
+    } catch (error) {
+        alert('Error de conexión: ' + error.message);
+    }
+}
+
+async function eliminarPago(pagoId) {
+    if (!confirm('¿Estás seguro de que quieres eliminar este pago?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/pagos/${pagoId}`, {
+            method: 'DELETE'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + result.mensaje);
+        }
+    } catch (error) {
+        alert('Error de conexión: ' + error.message);
+    }
+}
+
+function filtrarPorEstado(estado) {
+    // Implementar filtrado por estado si es necesario
+    // Por ahora recarga la página con parámetro de filtro
+    if (estado) {
+        window.location.href = `/pagos?estado=${estado}`;
+    } else {
+        window.location.href = '/pagos';
+    }
+}
+</script>
+{% endblock %}

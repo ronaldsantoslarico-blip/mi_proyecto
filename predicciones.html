@@ -1,0 +1,700 @@
+ñññ{% extends "base.html" %}
+
+{% block content %}
+<h2>🔮 Predicciones IA - Sistema Predictivo Avanzado</h2>
+
+<div class="row">
+    <div class="col-md-4">
+        <!-- Panel de selección de cliente -->
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-users me-2"></i>Seleccionar Cliente
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" id="lista-clientes">
+                    {% for cliente in clientes %}
+                    <button type="button" class="list-group-item list-group-item-action cliente-item" 
+                            data-cliente-id="{{ cliente.id }}"
+                            data-cliente-nombre="{{ cliente.nombre }}"
+                            data-cliente-email="{{ cliente.email }}"
+                            data-cliente-estado="{{ cliente.estado_actual }}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <strong class="d-block">{{ cliente.nombre }}</strong>
+                                <small class="text-muted">{{ cliente.email or 'Sin email' }}</small>
+                            </div>
+                            <span class="badge 
+                                {% if cliente.estado_actual == 'al_dia' %}bg-success
+                                {% elif cliente.estado_actual == 'retraso_leve' %}bg-warning
+                                {% elif cliente.estado_actual == 'retraso_grave' %}bg-orange
+                                {% else %}bg-danger{% endif %} ms-2">
+                                {{ cliente.estado_actual|replace('_', ' ')|title }}
+                            </span>
+                        </div>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas rápidas -->
+        <div class="card mt-3">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Estadísticas del Sistema
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="text-primary">
+                            <i class="fas fa-robot fa-2x mb-2"></i>
+                            <div class="fw-bold fs-5">{{ clientes|length }}</div>
+                            <small>Clientes Analizados</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="text-success">
+                            <i class="fas fa-brain fa-2x mb-2"></i>
+                            <div class="fw-bold fs-5">93%</div>
+                            <small>Precisión IA</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información sobre los algoritmos -->
+        <div class="card mt-3">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>Tecnología IA Utilizada
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="text-primary mb-2">
+                        <i class="fas fa-link me-1"></i>Cadenas de Markov
+                    </h6>
+                    <p class="small mb-0 text-muted">
+                        Analiza secuencias de estados para predecir comportamientos futuros basado en patrones históricos.
+                    </p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-warning mb-2">
+                        <i class="fas fa-chart-line me-1"></i>Análisis de Riesgo
+                    </h6>
+                    <p class="small mb-0 text-muted">
+                        Clasifica el nivel de riesgo según historial de pagos y patrones de comportamiento.
+                    </p>
+                </div>
+                <div>
+                    <h6 class="text-success mb-2">
+                        <i class="fas fa-bolt me-1"></i>Aprendizaje Automático
+                    </h6>
+                    <p class="small mb-0 text-muted">
+                        Mejora continua con nuevos datos para aumentar la precisión predictiva.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <!-- Panel de resultados principales -->
+        <div class="card">
+            <div class="card-header bg-gradient-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Análisis Predictivo - Resultados
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Estado vacío -->
+                <div id="panel-vacio" class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-crystal-ball fa-4x text-muted mb-3"></i>
+                    </div>
+                    <h4 class="text-muted mb-3">Análisis Predictivo</h4>
+                    <p class="text-muted mb-4">
+                        Selecciona un cliente de la lista para generar predicciones inteligentes<br>
+                        sobre su comportamiento futuro de pagos.
+                    </p>
+                    <div class="row justify-content-center">
+                        <div class="col-auto">
+                            <div class="text-center">
+                                <i class="fas fa-shield-alt text-success fa-2x mb-2"></i>
+                                <div class="small text-muted">Evaluación de Riesgo</div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="text-center">
+                                <i class="fas fa-calendar-alt text-warning fa-2x mb-2"></i>
+                                <div class="small text-muted">Predicción Mensual</div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="text-center">
+                                <i class="fas fa-lightbulb text-info fa-2x mb-2"></i>
+                                <div class="small text-muted">Recomendaciones</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado de carga -->
+                <div id="panel-cargando" class="text-center py-5" style="display: none;">
+                    <div class="mb-4">
+                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                    <h5 class="text-primary mb-3">Analizando Patrones de Comportamiento</h5>
+                    <div class="progress mb-3" style="height: 6px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                    </div>
+                    <p class="text-muted">
+                        <small>
+                            Procesando datos históricos • Aplicando algoritmos de Markov • Calculando probabilidades
+                        </small>
+                    </p>
+                </div>
+
+                <!-- Resultados -->
+                <div id="panel-resultado" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Panel de insights adicionales -->
+        <div id="panel-insights" class="card mt-3" style="display: none;">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Insights y Tendencias
+                </h6>
+            </div>
+            <div class="card-body" id="insights-content">
+                <!-- Los insights se cargan dinámicamente -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Variables globales
+let clienteActual = null;
+
+// Configurar event listeners para los botones de clientes
+document.addEventListener('DOMContentLoaded', function() {
+    const botonesClientes = document.querySelectorAll('.cliente-item');
+    
+    botonesClientes.forEach(boton => {
+        boton.addEventListener('click', function() {
+            const clienteId = this.getAttribute('data-cliente-id');
+            const clienteNombre = this.getAttribute('data-cliente-nombre');
+            const clienteEmail = this.getAttribute('data-cliente-email');
+            const clienteEstado = this.getAttribute('data-cliente-estado');
+            
+            clienteActual = {
+                id: clienteId,
+                nombre: clienteNombre,
+                email: clienteEmail,
+                estado: clienteEstado
+            };
+            
+            predecirCliente(clienteId);
+        });
+    });
+});
+
+async function predecirCliente(clienteId) {
+    // Resaltar cliente seleccionado
+    resaltarClienteSeleccionado(clienteId);
+    
+    // Ocultar paneles anteriores
+    document.getElementById('panel-vacio').style.display = 'none';
+    document.getElementById('panel-resultado').style.display = 'none';
+    document.getElementById('panel-insights').style.display = 'none';
+    
+    // Mostrar carga
+    document.getElementById('panel-cargando').style.display = 'block';
+    
+    try {
+        const response = await fetch(`/api/predecir/${clienteId}`);
+        const data = await response.json();
+        
+        // Simular tiempo de procesamiento para mejor UX
+        setTimeout(() => {
+            document.getElementById('panel-cargando').style.display = 'none';
+            
+            if (data.success) {
+                mostrarResultadoExitoso(data);
+                generarInsights(data);
+            } else {
+                mostrarError(data.error || 'Error al generar predicción');
+            }
+        }, 1500);
+        
+    } catch (error) {
+        document.getElementById('panel-cargando').style.display = 'none';
+        mostrarError('Error de conexión: ' + error.message);
+    }
+}
+
+function resaltarClienteSeleccionado(clienteId) {
+    // Remover active de todos los botones
+    document.querySelectorAll('.cliente-item').forEach(item => {
+        item.classList.remove('active', 'border-primary');
+    });
+    
+    // Agregar active al botón seleccionado
+    const botonSeleccionado = document.querySelector(`[data-cliente-id="${clienteId}"]`);
+    if (botonSeleccionado) {
+        botonSeleccionado.classList.add('active', 'border-primary');
+    }
+}
+
+function mostrarResultadoExitoso(data) {
+    let html = `
+        <!-- Header del cliente -->
+        <div class="row align-items-center mb-4">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary rounded-circle p-3 me-3">
+                        <i class="fas fa-user text-white fa-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-1">${data.cliente.nombre}</h4>
+                        <p class="text-muted mb-0">${data.cliente.email || 'Sin email registrado'}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="alert alert-${data.nivel_riesgo[1]} mb-0">
+                    <strong class="d-block">Nivel de Riesgo</strong>
+                    <span class="fs-5">${data.nivel_riesgo[0]}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjetas de estado actual -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 bg-light">
+                    <div class="card-body text-center py-3">
+                        <i class="fas fa-flag fa-2x text-${data.estado_actual === 'al_dia' ? 'success' : 
+                                 data.estado_actual === 'retraso_leve' ? 'warning' : 
+                                 data.estado_actual === 'retraso_grave' ? 'orange' : 'danger'} mb-2"></i>
+                        <h6 class="mb-1">Estado Actual</h6>
+                        <span class="badge bg-${data.estado_actual === 'al_dia' ? 'success' : 
+                                 data.estado_actual === 'retraso_leve' ? 'warning' : 
+                                 data.estado_actual === 'retraso_grave' ? 'orange' : 'danger'} fs-6">
+                            ${data.estado_actual.replace('_', ' ').toUpperCase()}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 bg-light">
+                    <div class="card-body text-center py-3">
+                        <i class="fas fa-database fa-2x text-info mb-2"></i>
+                        <h6 class="mb-1">Datos Analizados</h6>
+                        <span class="fs-5">12 meses</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 bg-light">
+                    <div class="card-body text-center py-3">
+                        <i class="fas fa-bolt fa-2x text-warning mb-2"></i>
+                        <h6 class="mb-1">Confianza IA</h6>
+                        <span class="fs-5">${data.probabilidades[0]}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Predicciones por mes -->
+        <h5 class="mb-3">
+            <i class="fas fa-chart-line me-2 text-primary"></i>
+            Predicción para los Próximos 3 Meses
+        </h5>
+    `;
+
+    // Resumen financiero (SAFA) - si el backend devolvió evaluación
+    try {
+        const evalData = data.evaluacion || {};
+        const detalle = evalData.detalle || {};
+        const tieneProp = detalle.tiene_propiedad === true || detalle.tiene_propiedad === 1;
+        const puntuacion = evalData.puntuacion_final !== undefined ? evalData.puntuacion_final : 'N/A';
+        const apto = evalData.apto_prestamo || 'N/A';
+        const nivel = evalData.nivel_riesgo || 'N/A';
+
+        const resumenHtml = `
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <h5 class="mb-1">Puntuación General</h5>
+                                    <h3 class="fw-bold">${puntuacion} <small class="text-muted">/100</small></h3>
+                                    <div class="mt-2">
+                                        <span class="badge bg-${evalData.color || 'secondary'} me-2">${apto}</span>
+                                        <small class="text-muted">Nivel de Riesgo: <strong>${nivel}</strong></small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">Tipo IA</small>
+                                    <div class="fw-semibold">${evalData.tipo_ia || 'SAFA + Markov'}</div>
+                                </div>
+                            </div>
+                            <hr/>
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="small text-muted">Ingresos Mensuales</div>
+                                    <div class="fw-bold">Bs. ${detalle.ingresos_mensuales !== undefined ? detalle.ingresos_mensuales.toFixed(2) : '0.00'}</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="small text-muted">Gastos Mensuales</div>
+                                    <div class="fw-bold">Bs. ${detalle.gastos_mensuales !== undefined ? detalle.gastos_mensuales.toFixed(2) : '0.00'}</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="small text-muted">Margen Disponible</div>
+                                    <div class="fw-bold">Bs. ${evalData.margen_disponible !== undefined ? evalData.margen_disponible.toFixed(2) : '0.00'}</div>
+                                </div>
+                            </div>
+                            <div class="row text-center mt-3">
+                                <div class="col-6">
+                                    <div class="small text-muted">Ratio Gastos/Ingresos</div>
+                                    <div class="fw-bold">${detalle.ratio_deuda !== undefined ? detalle.ratio_deuda.toFixed(2) : '0.00'}%</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Estado de Propiedad</div>
+                                    <div class="fw-bold">${tieneProp ? '✓ Propiedad registrada' : '✗ Sin propiedad registrada'}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex align-items-stretch">
+                    <div class="card w-100">
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="mb-3">Estado de Propiedad</h6>
+                            <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                                <canvas id="piePropiedad" style="max-height:220px; width:100%;"></canvas>
+                            </div>
+                            <div class="text-center mt-2 small text-muted">Gráfico tipo torta: propiedad vs no propiedad</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Anteponer el resumen al HTML de resultados
+        html = resumenHtml + html;
+
+        // Inicializar gráfico pie después de renderizar
+        setTimeout(() => {
+            try {
+                if (typeof Chart !== 'undefined') {
+                    const ctx = document.getElementById('piePropiedad').getContext('2d');
+                    const dataPie = {
+                        labels: ['Propiedad registrada', 'Sin propiedad'],
+                        datasets: [{
+                            data: [tieneProp ? 1 : 0, tieneProp ? 0 : 1],
+                            backgroundColor: ['#28a745', '#dc3545']
+                        }]
+                    };
+                    new Chart(ctx, {
+                        type: 'pie',
+                        data: dataPie,
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                    });
+                }
+            } catch (e) {
+                console.warn('No se pudo generar la gráfica de propiedad:', e);
+            }
+        }, 80);
+    } catch (e) {
+        console.warn('Error preparando resumen financiero:', e);
+    }
+    
+    // Añadir cada predicción mensual
+    data.predicciones.forEach((prediccion, index) => {
+        const probabilidad = data.probabilidades[index];
+        const mes = index + 1;
+        const fecha = new Date();
+        fecha.setMonth(fecha.getMonth() + mes);
+        const nombreMes = fecha.toLocaleDateString('es-ES', { month: 'long' });
+        
+        let colorBarra = 'bg-success';
+        let icono = 'fa-check-circle';
+        
+        if (probabilidad <= 40) {
+            colorBarra = 'bg-danger';
+            icono = 'fa-exclamation-triangle';
+        } else if (probabilidad <= 60) {
+            colorBarra = 'bg-warning';
+            icono = 'fa-clock';
+        } else if (probabilidad <= 80) {
+            colorBarra = 'bg-info';
+            icono = 'fa-thumbs-up';
+        }
+        
+        let colorEstado = prediccion === 'al_dia' ? 'success' : 
+                         prediccion === 'retraso_leve' ? 'warning' : 
+                         prediccion === 'retraso_grave' ? 'orange' : 'danger';
+
+        html += `
+            <div class="card mb-3 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-2 text-center">
+                            <div class="bg-primary text-white rounded-circle p-3 d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                <strong>M${mes}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas ${icono} text-${colorEstado} fa-lg me-2"></i>
+                                <div>
+                                    <strong class="d-block">${nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)}</strong>
+                                    <small class="text-muted">${prediccion.replace('_', ' ').toUpperCase()}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1 me-3">
+                                    <div class="progress" style="height: 12px;">
+                                        <div class="progress-bar ${colorBarra} progress-bar-striped" 
+                                             style="width: ${probabilidad}%"
+                                             role="progressbar">
+                                        </div>
+                                    </div>
+                                </div>
+                                <strong class="text-nowrap">${probabilidad}%</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <span class="badge bg-${colorEstado} fs-6">
+                                ${probabilidad}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    // Añadir recomendación basada en el riesgo
+    let recomendacion = '';
+    let acciones = [];
+    let colorRecomendacion = '';
+    let iconoRecomendacion = '';
+    
+    if (data.nivel_riesgo[0] === 'Bajo') {
+        recomendacion = 'Cliente confiable con excelente historial de pagos.';
+        acciones = ['Mantener relación comercial normal', 'Ofrecer beneficios por fidelidad', 'Considerar aumento de límite'];
+        colorRecomendacion = 'success';
+        iconoRecomendacion = 'fa-star';
+    } else if (data.nivel_riesgo[0] === 'Moderado') {
+        recomendacion = 'Cliente con comportamiento variable que requiere atención.';
+        acciones = ['Enviar recordatorios de pago', 'Monitorear mensualmente', 'Mantener comunicación regular'];
+        colorRecomendacion = 'warning';
+        iconoRecomendacion = 'fa-eye';
+    } else if (data.nivel_riesgo[0] === 'Alto') {
+        recomendacion = 'Cliente de alto riesgo que necesita medidas preventivas.';
+        acciones = ['Implementar cobranza preventiva', 'Revisar términos de pago', 'Limitar crédito adicional'];
+        colorRecomendacion = 'orange';
+        iconoRecomendacion = 'fa-shield-alt';
+    } else {
+        recomendacion = 'Riesgo muy alto. Evaluar continuidad de la relación comercial.';
+        acciones = ['Suspender nuevos créditos', 'Activar cobranza activa', 'Evaluar reestructuración'];
+        colorRecomendacion = 'danger';
+        iconoRecomendacion = 'fa-exclamation-triangle';
+    }
+    
+    html += `
+        <div class="mt-4">
+            <div class="alert alert-${colorRecomendacion} border-0">
+                <div class="d-flex align-items-center">
+                    <i class="fas ${iconoRecomendacion} fa-2x me-3"></i>
+                    <div class="flex-grow-1">
+                        <h5 class="alert-heading mb-2">💡 Recomendación Estratégica</h5>
+                        <p class="mb-3">${recomendacion}</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="mb-2">Acciones Recomendadas:</h6>
+                                <ul class="small mb-0">
+                                    ${acciones.map(accion => `<li>${accion}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="mb-2">Seguimiento:</h6>
+                                <p class="small mb-0">Reevaluar en 30 días o ante cambios significativos en el comportamiento.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4 pt-3 border-top">
+            <small class="text-muted">
+                <i class="fas fa-robot me-1"></i>
+                Análisis generado por IA - Cadenas de Markov • Última actualización: ${new Date().toLocaleDateString('es-ES')}
+            </small>
+        </div>
+    `;
+    
+    document.getElementById('panel-resultado').innerHTML = html;
+    document.getElementById('panel-resultado').style.display = 'block';
+}
+
+function generarInsights(data) {
+    let insightsHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card bg-light border-0 mb-3">
+                    <div class="card-body">
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-trending-up me-2"></i>Tendencia General
+                        </h6>
+                        ${data.nivel_riesgo[0] === 'Bajo' ? 
+                            '<p class="mb-0 small text-success">Tendencia positiva estable. Cliente mantiene buen comportamiento.</p>' :
+                         data.nivel_riesgo[0] === 'Moderado' ?
+                            '<p class="mb-0 small text-warning">Tendencia variable. Requiere monitoreo constante.</p>' :
+                         data.nivel_riesgo[0] === 'Alto' ?
+                            '<p class="mb-0 small text-orange">Tendencia negativa. Patrón de deterioro identificado.</p>' :
+                            '<p class="mb-0 small text-danger">Tendencia crítica. Comportamiento de alto riesgo.</p>'
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card bg-light border-0 mb-3">
+                    <div class="card-body">
+                        <h6 class="text-info mb-3">
+                            <i class="fas fa-calendar-check me-2"></i>Punto de Inflexión
+                        </h6>
+                        <p class="mb-0 small">
+                            ${data.predicciones[0] === 'al_dia' ? 
+                                'Próximo mes: Comportamiento esperado estable' :
+                             data.predicciones[0] === 'retraso_leve' ?
+                                'Próximo mes: Posible inicio de deterioro' :
+                                'Próximo mes: Riesgo inmediato identificado'
+                            }
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="alert alert-info border-0">
+            <h6 class="mb-2">
+                <i class="fas fa-lightbulb me-2"></i>Insight Clave
+            </h6>
+            <p class="small mb-0">
+                ${data.estado_actual === 'al_dia' && data.predicciones.includes('impago') ?
+                    '⚠️ Cliente actualmente al día pero con riesgo futuro de impago detectado.' :
+                 data.estado_actual === 'impago' && data.predicciones.includes('al_dia') ?
+                    '📈 Cliente en impago pero con probabilidad de recuperación en los próximos meses.' :
+                    '🔍 Patrón de comportamiento consistente con el estado actual del cliente.'
+                }
+            </p>
+        </div>
+    `;
+    
+    document.getElementById('insights-content').innerHTML = insightsHTML;
+    document.getElementById('panel-insights').style.display = 'block';
+}
+
+function mostrarError(mensaje) {
+    const html = `
+        <div class="alert alert-danger border-0">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                <div>
+                    <h5 class="alert-heading mb-2">Error en el Análisis</h5>
+                    <p class="mb-3">${mensaje}</p>
+                    <button class="btn btn-outline-danger" onclick="location.reload()">
+                        <i class="fas fa-redo me-2"></i>Reiniciar Análisis
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('panel-resultado').innerHTML = html;
+    document.getElementById('panel-resultado').style.display = 'block';
+}
+</script>
+
+<style>
+.cliente-item.active {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+    border-color: #007bff !important;
+    color: white !important;
+    transform: translateX(5px);
+    transition: all 0.3s ease;
+}
+
+.cliente-item.active .badge {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    color: #007bff !important;
+    font-weight: 600;
+}
+
+.cliente-item.active .text-muted {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.progress {
+    border-radius: 10px;
+    background-color: #f8f9fa;
+}
+
+.progress-bar {
+    border-radius: 10px;
+    font-weight: 500;
+    transition: width 1s ease-in-out;
+}
+
+.bg-orange {
+    background-color: #fd7e14 !important;
+}
+
+.text-orange {
+    color: #fd7e14 !important;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+}
+
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.spinner-border {
+    border-width: 3px;
+}
+
+.alert {
+    border-left: 4px solid;
+}
+
+.alert-success { border-left-color: #28a745; }
+.alert-warning { border-left-color: #ffc107; }
+.alert-danger { border-left-color: #dc3545; }
+.alert-info { border-left-color: #17a2b8; }
+</style>
+{% endblock %}

@@ -1,0 +1,1018 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>👥 Gestión de Clientes</h2>
+
+<div class="row mb-4">
+    <div class="col">
+        <button class="btn btn-primary" onclick="mostrarModalAgregar()">
+            <i class="fas fa-plus me-2"></i>Agregar Cliente
+        </button>
+    </div>
+</div>
+
+<!-- Modal para agregar/editar cliente -->
+<div class="modal fade" id="modalCliente" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalClienteTitulo">Agregar Nuevo Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCliente">
+                    <input type="hidden" id="cliente-id">
+                    
+                    <!-- Sección de información básica -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3"><i class="fas fa-user-circle me-2"></i>Información Básica</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nombre completo</label>
+                                <input type="text" class="form-control" id="nombre" placeholder="Ingrese el nombre del cliente" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" placeholder="cliente@ejemplo.com">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Teléfono</label>
+                                <input type="tel" class="form-control" id="telefono" placeholder="Ej: +591 76543210">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Dirección</label>
+                                <input type="text" class="form-control" id="direccion" placeholder="Calle, zona, ciudad">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Estado actual</label>
+                            <select class="form-select" id="estado_actual" required>
+                                <option value="al_dia">Al día</option>
+                                <option value="retraso_leve">Retraso leve</option>
+                                <option value="retraso_grave">Retraso grave</option>
+                                <option value="impago">Impago</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Sección de información financiera -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3"><i class="fas fa-money-bill-wave me-2"></i>Información Financiera (Bs.)</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Sueldo mensual <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="sueldo" 
+                                       placeholder="Ej: 2500" step="0.01" min="0" required>
+                                <small class="text-muted">Ingreso principal mensual en Bs.</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Otros ingresos</label>
+                                <input type="number" class="form-control" id="otros_ingresos" 
+                                       placeholder="Ej: 500" step="0.01" min="0">
+                                <small class="text-muted">Ingresos adicionales (opcional)</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Gastos de vivienda <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="gastos_vivienda" 
+                                       placeholder="Ej: 800" step="0.01" min="0" required>
+                                <small class="text-muted">Arriendo, hipoteca, servicios en Bs.</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">¿Tiene propiedad? <span class="text-danger">*</span></label>
+                                <select class="form-select" id="tiene_propiedad" required onchange="toggleValorPropiedad()">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="false">No</option>
+                                    <option value="true">Sí</option>
+                                </select>
+                                <small class="text-muted">¿Tiene casa, terreno o propiedad?</small>
+                            </div>
+                        </div>
+                        <div class="row" id="fila-valor-propiedad" style="display:none;">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Valor de la propiedad/terreno <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="valor_propiedad" 
+                                       placeholder="Ej: 50000" step="0.01" min="0">
+                                <small class="text-muted">Valor estimado de tu propiedad en Bs.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección de solicitud de préstamo -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3"><i class="fas fa-hand-holding-usd me-2"></i>Solicitud de Préstamo</h6>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Monto solicitado (Bs.)</label>
+                                <input type="number" class="form-control" id="monto_solicitado" 
+                                       placeholder="Ej: 10000" step="0.01" min="0">
+                                <small class="text-muted">¿Cuánto quiere solicitar?</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección de notas -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3"><i class="fas fa-sticky-note me-2"></i>Notas y Observaciones</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Notas del oficial de crédito</label>
+                            <textarea class="form-control" id="notas" rows="3" 
+                                      placeholder="Ej: Cliente potencial, requiere seguimiento, etc."></textarea>
+                            <small class="text-muted">Observaciones adicionales sobre el cliente</small>
+                        </div>
+                    </div>
+
+                    <!-- Sección de evaluación -->
+                    <div class="mb-4">
+                        <div class="alert alert-info mb-3">
+                            <h6 class="mb-2"><i class="fas fa-robot me-2"></i>Análisis de Evaluación Crediticia</h6>
+                            <p class="mb-0" id="mensaje-evaluacion">Haz clic en "Evaluar" para analizar la aptitud crediticia...</p>
+                        </div>
+                        <div id="resultado-evaluacion"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-info" id="btn-evaluar" onclick="evaluarCredito()" style="display:none;">
+                    <i class="fas fa-brain me-2"></i>Evaluar Crediticio
+                </button>
+                <button type="button" class="btn btn-primary" id="btn-guardar" onclick="guardarCliente()">
+                    <i class="fas fa-save me-2"></i>Guardar Cliente
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen de clientes -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center py-3">
+                <h4>{{ clientes|length }}</h4>
+                <p class="mb-0">Total Clientes</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center py-3">
+                <h4>{{ clientes|selectattr('estado_actual', 'equalto', 'al_dia')|list|length }}</h4>
+                <p class="mb-0">Al Día</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body text-center py-3">
+                <h4>{{ clientes|selectattr('estado_actual', 'equalto', 'retraso_leve')|list|length + clientes|selectattr('estado_actual', 'equalto', 'retraso_grave')|list|length }}</h4>
+                <p class="mb-0">Con Retraso</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center py-3">
+                <h4>{{ clientes|selectattr('estado_actual', 'equalto', 'impago')|list|length }}</h4>
+                <p class="mb-0">En Impago</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de clientes -->
+<div class="card">
+    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-users me-2"></i>Lista de Clientes</h5>
+        <span class="badge bg-light text-dark">{{ clientes|length }} clientes</span>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Contacto</th>
+                        <th>Estado</th>
+                        <th>Aptitud</th>
+                        <th>Puntuación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cliente in clientes %}
+                    <tr>
+                        <td><strong>#{{ cliente.id }}</strong></td>
+                        <td>
+                            <div>
+                                <strong>{{ cliente.nombre }}</strong>
+                                {% if cliente.total_impagos and cliente.total_impagos > 0 %}
+                                <span class="badge bg-danger ms-1" title="{{ cliente.total_impagos }} pagos impagos">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <small>
+                                {% if cliente.email %}
+                                <div><i class="fas fa-envelope me-1"></i>{{ cliente.email }}</div>
+                                {% endif %}
+                                {% if cliente.telefono %}
+                                <div><i class="fas fa-phone me-1"></i>{{ cliente.telefono }}</div>
+                                {% else %}
+                                <div class="text-muted"><em>Sin teléfono</em></div>
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if cliente.estado_actual == 'al_dia' %}bg-success
+                                {% elif cliente.estado_actual == 'retraso_leve' %}bg-warning
+                                {% elif cliente.estado_actual == 'retraso_grave' %}bg-orange
+                                {% else %}bg-danger{% endif %}">
+                                {{ cliente.estado_actual|replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if cliente.apto_prestamo %}
+                            <span class="badge 
+                                {% if cliente.apto_prestamo == 'Sí ✓' %}bg-success
+                                {% elif cliente.apto_prestamo == 'Condicionado' %}bg-warning
+                                {% else %}bg-danger{% endif %}">
+                                {{ cliente.apto_prestamo }}
+                            </span>
+                            {% else %}
+                            <span class="badge bg-secondary">Sin evaluar</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if cliente.calificacion_crediticia %}
+                            <strong>{{ cliente.calificacion_crediticia }}/100</strong>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary btn-editar-cliente" 
+                                        data-id="{{ cliente.id }}"
+                                        data-nombre="{{ cliente.nombre }}"
+                                        data-email="{{ cliente.email or '' }}"
+                                        data-estado="{{ cliente.estado_actual }}"
+                                        title="Editar cliente">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline-danger btn-eliminar-cliente" 
+                                        data-id="{{ cliente.id }}"
+                                        data-nombre="{{ cliente.nombre }}"
+                                        title="Eliminar cliente">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if not clientes %}
+        <div class="text-center py-5">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No hay clientes registrados</h5>
+            <p class="text-muted">Agrega el primer cliente usando el botón superior</p>
+            <button class="btn btn-primary" onclick="mostrarModalAgregar()">
+                <i class="fas fa-plus me-2"></i>Agregar Primer Cliente
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Filtros rápidos -->
+<div class="card mt-4">
+    <div class="card-header bg-light">
+        <h6 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros Rápidos</h6>
+    </div>
+    <div class="card-body">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="filtrarPorEstado('')">
+                Todos ({{ clientes|length }})
+            </button>
+            <button type="button" class="btn btn-outline-success btn-sm" onclick="filtrarPorEstado('al_dia')">
+                Al Día ({{ clientes|selectattr('estado_actual', 'equalto', 'al_dia')|list|length }})
+            </button>
+            <button type="button" class="btn btn-outline-warning btn-sm" onclick="filtrarPorEstado('retraso_leve')">
+                Retraso Leve ({{ clientes|selectattr('estado_actual', 'equalto', 'retraso_leve')|list|length }})
+            </button>
+            <button type="button" class="btn btn-outline-orange btn-sm" onclick="filtrarPorEstado('retraso_grave')">
+                Retraso Grave ({{ clientes|selectattr('estado_actual', 'equalto', 'retraso_grave')|list|length }})
+            </button>
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="filtrarPorEstado('impago')">
+                Impago ({{ clientes|selectattr('estado_actual', 'equalto', 'impago')|list|length }})
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-orange {
+    background-color: #fd7e14 !important;
+}
+.btn-outline-orange {
+    color: #fd7e14;
+    border-color: #fd7e14;
+}
+.btn-outline-orange:hover {
+    background-color: #fd7e14;
+    border-color: #fd7e14;
+    color: white;
+}
+.table th {
+    font-weight: 600;
+    border-top: none;
+}
+.btn-group-sm > .btn {
+    padding: 0.25rem 0.5rem;
+}
+</style>
+
+<!-- Chart.js para gráficos de torta en evaluación -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
+<script>
+// Configurar event listeners cuando el documento esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    // Event listeners para botones editar cliente
+    document.querySelectorAll('.btn-editar-cliente').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const nombre = this.getAttribute('data-nombre');
+            const email = this.getAttribute('data-email');
+            const estado = this.getAttribute('data-estado');
+            editarCliente(id, nombre, email, estado);
+        });
+    });
+
+    // Event listeners para botones eliminar cliente
+    document.querySelectorAll('.btn-eliminar-cliente').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const nombre = this.getAttribute('data-nombre');
+            eliminarCliente(id, nombre);
+        });
+    });
+});
+
+function mostrarModalAgregar() {
+    const elements = {
+        'modalClienteTitulo': 'textContent',
+        'formCliente': 'reset',
+        'cliente-id': 'value',
+        'resultado-evaluacion': 'innerHTML',
+        'mensaje-evaluacion': 'textContent',
+        'btn-evaluar': 'style',
+        'btn-guardar': 'textContent',
+        'tiene_propiedad': 'value',
+        'fila-valor-propiedad': 'style'
+    };
+    
+    // Usar try-catch para cada operación
+    try {
+        const titulo = document.getElementById('modalClienteTitulo');
+        if (titulo) titulo.textContent = 'Agregar Nuevo Cliente';
+        
+        const form = document.getElementById('formCliente');
+        if (form) form.reset();
+        
+        const clienteId = document.getElementById('cliente-id');
+        if (clienteId) clienteId.value = '';
+        
+        const resultado = document.getElementById('resultado-evaluacion');
+        if (resultado) resultado.innerHTML = '';
+        
+        const mensaje = document.getElementById('mensaje-evaluacion');
+        if (mensaje) mensaje.textContent = 'Haz clic en "Evaluar" para analizar la aptitud crediticia...';
+        
+        const btnEvaluar = document.getElementById('btn-evaluar');
+        if (btnEvaluar) btnEvaluar.style.display = 'inline-block';
+        
+        const btnGuardar = document.getElementById('btn-guardar');
+        if (btnGuardar) btnGuardar.textContent = 'Guardar Cliente';
+        
+        const tienePropiedad = document.getElementById('tiene_propiedad');
+        if (tienePropiedad) tienePropiedad.value = '';
+        
+        const filaValor = document.getElementById('fila-valor-propiedad');
+        if (filaValor) filaValor.style.display = 'none';
+    } catch (error) {
+        console.error('Error en mostrarModalAgregar:', error);
+    }
+    
+    // Mostrar modal
+    try {
+        const modalElement = document.getElementById('modalCliente');
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+    } catch (error) {
+        console.error('Error abriendo modal:', error);
+    }
+}
+
+async function editarCliente(id, nombre, email, estado) {
+    try {
+        const titulo = document.getElementById('modalClienteTitulo');
+        if (titulo) titulo.textContent = 'Editar Cliente';
+        
+        const clienteId = document.getElementById('cliente-id');
+        if (clienteId) clienteId.value = id;
+        
+        const nombreInput = document.getElementById('nombre');
+        if (nombreInput) nombreInput.value = nombre;
+        
+        const emailInput = document.getElementById('email');
+        if (emailInput) emailInput.value = email;
+        
+        const estadoInput = document.getElementById('estado_actual');
+        if (estadoInput) estadoInput.value = estado;
+        
+        const resultado = document.getElementById('resultado-evaluacion');
+        if (resultado) resultado.innerHTML = '';
+        
+        const mensaje = document.getElementById('mensaje-evaluacion');
+        if (mensaje) mensaje.textContent = 'Evaluación anterior disponible...';
+        
+        const btnEvaluar = document.getElementById('btn-evaluar');
+        if (btnEvaluar) btnEvaluar.style.display = 'inline-block';
+        
+        const btnGuardar = document.getElementById('btn-guardar');
+        if (btnGuardar) btnGuardar.textContent = 'Actualizar Cliente';
+    } catch (error) {
+        console.error('Error inicializando formulario:', error);
+        mostrarAlerta('Error al abrir el formulario: ' + error.message, 'danger');
+        return;
+    }
+    
+    // Obtener datos completos del cliente
+    try {
+        const response = await fetch(`/api/clientes/${id}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const cliente = result.data;
+            const sueldoInput = document.getElementById('sueldo');
+            if (sueldoInput) sueldoInput.value = cliente.sueldo || '';
+            
+            const otrosInput = document.getElementById('otros_ingresos');
+            if (otrosInput) otrosInput.value = cliente.otros_ingresos || '';
+            
+            const gastosInput = document.getElementById('gastos_vivienda');
+            if (gastosInput) gastosInput.value = cliente.gastos_vivienda || '';
+            
+            const propiedadInput = document.getElementById('tiene_propiedad');
+            if (propiedadInput) propiedadInput.value = cliente.tiene_propiedad ? 'true' : 'false';
+            
+            const valorInput = document.getElementById('valor_propiedad');
+            if (valorInput) valorInput.value = cliente.valor_propiedad || '';
+            
+            const telefonoInput = document.getElementById('telefono');
+            if (telefonoInput) telefonoInput.value = cliente.telefono || '';
+            
+            const direccionInput = document.getElementById('direccion');
+            if (direccionInput) direccionInput.value = cliente.direccion || '';
+            
+            const montoInput = document.getElementById('monto_solicitado');
+            if (montoInput) montoInput.value = cliente.monto_solicitado || '';
+            
+            const notasInput = document.getElementById('notas');
+            if (notasInput) notasInput.value = cliente.notas || '';
+            
+            // Mostrar/ocultar campo de valor de propiedad
+            toggleValorPropiedad();
+        }
+    } catch (error) {
+        console.error('Error obteniendo datos del cliente:', error);
+        mostrarAlerta('Error al cargar los datos del cliente', 'danger');
+    }
+    
+    // Mostrar modal
+    try {
+        const modalElement = document.getElementById('modalCliente');
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+    } catch (error) {
+        console.error('Error abriendo modal:', error);
+    }
+}
+
+async function evaluarCredito() {
+    // Validar que los elementos existan
+    const sueldoInput = document.getElementById('sueldo');
+    const gastosInput = document.getElementById('gastos_vivienda');
+    const tienePropiedad = document.getElementById('tiene_propiedad');
+    const estadoInput = document.getElementById('estado_actual');
+    
+    if (!sueldoInput || !gastosInput || !tienePropiedad || !estadoInput) {
+        mostrarAlerta('Error: No se pudieron encontrar los campos del formulario', 'danger');
+        return;
+    }
+    
+    const sueldo = parseFloat(sueldoInput.value) || 0;
+    const otros_ingresos = parseFloat(document.getElementById('otros_ingresos').value) || 0;
+    const gastos_vivienda = parseFloat(gastosInput.value) || 0;
+    const tiene_propiedad = tienePropiedad.value === 'true';
+    const valor_propiedad = parseFloat(document.getElementById('valor_propiedad').value) || 0;
+    const estado_actual = estadoInput.value;
+
+    // Validar campos requeridos
+    if (!sueldo || !gastos_vivienda) {
+        mostrarAlerta('Debes llenar los campos de sueldo y gastos de vivienda', 'warning');
+        return;
+    }
+
+    if (tiene_propiedad && !valor_propiedad) {
+        mostrarAlerta('Si tienes propiedad, debes indicar su valor', 'warning');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/evaluar-crediticio', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                sueldo: sueldo,
+                otros_ingresos: otros_ingresos,
+                gastos_vivienda: gastos_vivienda,
+                tiene_propiedad: tiene_propiedad,
+                valor_propiedad: valor_propiedad,
+                estado_actual: estado_actual
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            mostrarResultadoEvaluacion(result.evaluacion);
+            // Guardar evaluación en campos ocultos para usar al guardar
+            const formCliente = document.getElementById('formCliente');
+            if (formCliente) {
+                formCliente.dataset.evaluacion = JSON.stringify(result.evaluacion);
+            }
+        } else {
+            mostrarAlerta('Error en evaluación: ' + result.mensaje, 'danger');
+        }
+    } catch (error) {
+        mostrarAlerta('Error de conexión: ' + error.message, 'danger');
+    }
+}
+
+function mostrarResultadoEvaluacion(evaluacion) {
+    const html = `
+        <div class="card border-${evaluacion.color} mb-3">
+            <div class="card-header bg-${evaluacion.color} text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Apto para Préstamo: <strong>${evaluacion.apto_prestamo}</strong>
+                </h6>
+            </div>
+            <div class="card-body">
+                <!-- Información del sistema de IA -->
+                <div class="alert alert-info py-2 px-3 mb-3">
+                    <small>
+                        <i class="fas fa-brain me-2"></i>
+                        <strong>Sistema de IA:</strong> ${evaluacion.tipo_ia}
+                    </small>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12 d-flex justify-content-center mb-3">
+                        <div style="width:480px; height:480px; max-width:92vw;">
+                            <canvas id="chartPuntuacion"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-12 text-center mb-2">
+                        <p class="mb-1"><small class="text-muted">Puntuación General</small></p>
+                        <h4 class="mb-1">
+                            ${evaluacion.puntuacion_final}
+                            <span class="fs-6 text-muted">/100</span>
+                        </h4>
+                        <div class="d-flex justify-content-center mb-2">
+                            <div class="progress" style="height: 10px; width: 60%;">
+                                <div class="progress-bar bg-${evaluacion.color}" 
+                                     style="width: ${evaluacion.puntuacion_final}%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="badge bg-${evaluacion.color} fs-6">Nivel de Riesgo: ${evaluacion.nivel_riesgo}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row text-center mb-3">
+                    <div class="col-md-6">
+                        <p class="mb-1"><small class="text-muted">Ingresos Mensuales</small></p>
+                        <h6 class="text-success"><strong>${evaluacion.moneda} ${parseFloat(evaluacion.detalle.ingresos_mensuales).toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></h6>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><small class="text-muted">Gastos Mensuales</small></p>
+                        <h6 class="text-warning"><strong>${evaluacion.moneda} ${parseFloat(evaluacion.detalle.gastos_mensuales).toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></h6>
+                    </div>
+                </div>
+
+                <div class="row text-center mb-3">
+                    <div class="col-md-6">
+                        <p class="mb-1"><small class="text-muted">Margen Disponible</small></p>
+                        <h6 class="${evaluacion.margen_disponible >= 0 ? 'text-success' : 'text-danger'}">
+                            <strong>${evaluacion.moneda} ${parseFloat(evaluacion.margen_disponible).toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
+                        </h6>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><small class="text-muted">Ratio Gastos/Ingresos</small></p>
+                        <h6><strong>${parseFloat(evaluacion.detalle.ratio_deuda).toLocaleString('es-ES')}%</strong></h6>
+                    </div>
+                </div>
+
+                <!-- Información de propiedad -->
+                <div class="row text-center mb-3">
+                    <div class="col-md-12">
+                        <p class="mb-1"><small class="text-muted">Estado de Propiedad</small></p>
+                        ${evaluacion.detalle.tiene_propiedad 
+                            ? `<h6><span class="badge bg-success">✓ Tiene propiedad - ${evaluacion.moneda} ${parseFloat(evaluacion.detalle.valor_propiedad).toLocaleString('es-ES')}</span></h6>` 
+                            : `<h6><span class="badge bg-secondary">✗ Sin propiedad registrada</span></h6>`
+                        }
+                    </div>
+                </div>
+
+                <hr>
+
+                <h6 class="mb-3"><i class="fas fa-lightbulb me-2"></i><strong>Análisis Detallado:</strong></h6>
+                <div class="list-group list-group-flush">
+                    ${evaluacion.recomendaciones.map(rec => {
+                        let badgeClass = 'bg-secondary';
+                        let iconClass = 'ms-1';
+                        
+                        // Determinar color según el tipo de recomendación
+                        if (rec.includes('✅')) badgeClass = 'bg-success';
+                        else if (rec.includes('❌')) badgeClass = 'bg-danger';
+                        else if (rec.includes('⚠️')) badgeClass = 'bg-warning text-dark';
+                        else if (rec.includes('💡')) badgeClass = 'bg-info text-white';
+                        else if (rec.includes('🎉')) badgeClass = 'bg-success';
+                        else if (rec.includes('🚫')) badgeClass = 'bg-danger';
+                        else if (rec.includes('⏳')) badgeClass = 'bg-warning text-dark';
+                        
+                        return `
+                            <div class="list-group-item px-0 py-2 border-0">
+                                <small class="d-block"><span class="badge ${badgeClass} d-block text-start">${rec}</span></small>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+
+    const resultadoDiv = document.getElementById('resultado-evaluacion');
+    if (resultadoDiv) {
+        resultadoDiv.innerHTML = html;
+        // Renderizar gráfico de torta DETALLADO que muestra Gastos vs Margen (y porcentajes)
+        try {
+            // Limpiar gráfico anterior si existe
+            if (window._chartPuntuacion instanceof Chart) {
+                window._chartPuntuacion.destroy();
+            }
+            const ctx = document.getElementById('chartPuntuacion').getContext('2d');
+
+            // Tomar valores desde el formulario (están disponibles en el modal)
+            const sueldoForm = parseFloat(document.getElementById('sueldo').value) || 0;
+            const otrosForm = parseFloat(document.getElementById('otros_ingresos').value) || 0;
+            const ingresosTotales = Math.max(0, sueldoForm + otrosForm);
+            const gastosForm = parseFloat(document.getElementById('gastos_vivienda').value) || 0;
+            const margen = Math.max(0, ingresosTotales - gastosForm);
+
+            // Datos para 4 slices: Sueldo, Otros, Gastos, Margen
+            const dataValues = [sueldoForm, otrosForm, gastosForm, margen];
+            const total = dataValues.reduce((a,b) => a + b, 0) || 1;
+
+            const labels = [
+                `Sueldo (${((sueldoForm/total)*100).toFixed(1)}%)`,
+                `Otros (${((otrosForm/total)*100).toFixed(1)}%)`,
+                `Gastos (${((gastosForm/total)*100).toFixed(1)}%)`,
+                `Margen (${((margen/total)*100).toFixed(1)}%)`
+            ];
+
+            // Registrar plugin de datalabels si está disponible
+            try {
+                if (window.ChartDataLabels) Chart.register(window.ChartDataLabels);
+            } catch (e) {
+                // no-op
+            }
+
+            // Crear un gráfico tipo 'pie' más estético y circular
+            window._chartPuntuacion = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataValues,
+                        backgroundColor: ['#0d6efd', '#20c997', '#dc3545', '#ffc107'],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 18, padding: 12, usePointStyle: true } },
+                        datalabels: {
+                            color: '#ffffff',
+                            formatter: function(value, ctx) {
+                                const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0) || 1;
+                                return (value / sum * 100).toFixed(1) + '%';
+                            },
+                            font: { weight: '700', size: 18 },
+                            anchor: 'center',
+                            align: 'center',
+                            offset: 0,
+                            clamp: true
+                        },
+                        tooltip: { callbacks: {
+                            label: function(context) {
+                                const val = context.parsed || 0;
+                                const sum = context.chart.data.datasets[0].data.reduce((a,b)=>a+b,0) || 1;
+                                const pct = (val / sum) * 100;
+                                return `${context.label}: Bs. ${val.toLocaleString('es-ES', {minimumFractionDigits:2})} (${pct.toFixed(1)}%)`;
+                            }
+                        } }
+                    }
+                }
+            });
+
+            // Mostrar desglose detallado (Sueldo / Otros / Gastos / Margen) con porcentajes
+            try {
+                const detalleDiv = document.createElement('div');
+                detalleDiv.className = 'mt-3 text-start';
+                const sueldoPct = ingresosTotales > 0 ? (sueldoForm / ingresosTotales) * 100 : 0;
+                const otrosPct = ingresosTotales > 0 ? (otrosForm / ingresosTotales) * 100 : 0;
+
+                detalleDiv.innerHTML = `
+                    <div><small class="text-muted">Desglose de recursos:</small></div>
+                    <div class="small">Sueldo: <strong>Bs. ${sueldoForm.toLocaleString('es-ES', {minimumFractionDigits:2})}</strong> — ${sueldoPct.toFixed(1)}%</div>
+                    <div class="small">Otros ingresos: <strong>Bs. ${otrosForm.toLocaleString('es-ES', {minimumFractionDigits:2})}</strong> — ${otrosPct.toFixed(1)}%</div>
+                    <div class="small">Gastos vivienda: <strong>Bs. ${gastosForm.toLocaleString('es-ES', {minimumFractionDigits:2})}</strong> — ${gastosPct.toFixed(1)}%</div>
+                    <div class="small">Margen disponible: <strong>Bs. ${margen.toLocaleString('es-ES', {minimumFractionDigits:2})}</strong> — ${margenPct.toFixed(1)}%</div>
+                `;
+
+                // Insertar o reemplazar detalle dentro del contenedor que está al lado del canvas
+                const parentCol = document.getElementById('resultado-evaluacion').querySelector('.ms-3');
+                if (parentCol) {
+                    // eliminar detalle previo si existe
+                    const prev = parentCol.querySelector('.mt-3.text-start');
+                    if (prev) prev.remove();
+                    parentCol.appendChild(detalleDiv);
+                }
+            } catch (e) {
+                console.warn('No se pudo añadir el detalle porcentual:', e);
+            }
+        } catch (e) {
+            console.warn('No se pudo renderizar chartPuntuacion:', e);
+        }
+    }
+}
+
+async function guardarCliente() {
+    try {
+        const nombreInput = document.getElementById('nombre');
+        const nombre = nombreInput ? nombreInput.value : '';
+        
+        const emailInput = document.getElementById('email');
+        const email = emailInput ? emailInput.value : '';
+        
+        const telefonoInput = document.getElementById('telefono');
+        const telefono = telefonoInput ? telefonoInput.value : '';
+        
+        const direccionInput = document.getElementById('direccion');
+        const direccion = direccionInput ? direccionInput.value : '';
+        
+        const estadoInput = document.getElementById('estado_actual');
+        const estado_actual = estadoInput ? estadoInput.value : '';
+        
+        const sueldoInput = document.getElementById('sueldo');
+        const sueldo = sueldoInput ? parseFloat(sueldoInput.value) || 0 : 0;
+        
+        const otrosInput = document.getElementById('otros_ingresos');
+        const otros_ingresos = otrosInput ? parseFloat(otrosInput.value) || 0 : 0;
+        
+        const gastosInput = document.getElementById('gastos_vivienda');
+        const gastos_vivienda = gastosInput ? parseFloat(gastosInput.value) || 0 : 0;
+        
+        const propiedadInput = document.getElementById('tiene_propiedad');
+        const tiene_propiedad = propiedadInput ? propiedadInput.value === 'true' : false;
+        
+        const valorInput = document.getElementById('valor_propiedad');
+        const valor_propiedad = valorInput ? parseFloat(valorInput.value) || 0 : 0;
+        
+        const montoInput = document.getElementById('monto_solicitado');
+        const monto_solicitado = montoInput ? parseFloat(montoInput.value) || 0 : 0;
+        
+        const notasInput = document.getElementById('notas');
+        const notas = notasInput ? notasInput.value : '';
+
+        // Validar campos requeridos
+        if (!nombre || !sueldo || !gastos_vivienda) {
+            mostrarAlerta('Debes llenar todos los campos requeridos (marcados con *)', 'warning');
+            return;
+        }
+
+        if (tiene_propiedad && !valor_propiedad) {
+            mostrarAlerta('Si tienes propiedad, debes indicar su valor', 'warning');
+            return;
+        }
+
+        const formData = {
+            nombre: nombre,
+            email: email,
+            telefono: telefono,
+            direccion: direccion,
+            estado_actual: estado_actual,
+            sueldo: sueldo,
+            otros_ingresos: otros_ingresos,
+            gastos_vivienda: gastos_vivienda,
+            tiene_propiedad: tiene_propiedad,
+            valor_propiedad: valor_propiedad,
+            monto_solicitado: monto_solicitado,
+            notas: notas
+        };
+
+        const clienteIdInput = document.getElementById('cliente-id');
+        const clienteId = clienteIdInput ? clienteIdInput.value : '';
+        const url = clienteId ? `/api/clientes/${clienteId}` : '/api/clientes';
+        const method = clienteId ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Cerrar modal y recargar
+            try {
+                const modalElement = document.getElementById('modalCliente');
+                if (modalElement) {
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
+                }
+            } catch (error) {
+                console.warn('Error cerrando modal:', error);
+            }
+            
+            // Mostrar mensaje de éxito
+            mostrarAlerta('Cliente ' + (clienteId ? 'actualizado' : 'agregado') + ' correctamente', 'success');
+            
+            // Recargar después de un breve delay
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            mostrarAlerta('Error: ' + result.mensaje, 'danger');
+        }
+    } catch (error) {
+        mostrarAlerta('Error de conexión: ' + error.message, 'danger');
+    }
+}
+
+async function eliminarCliente(clienteId, clienteNombre) {
+    if (!confirm(`¿Estás seguro de que quieres eliminar al cliente "${clienteNombre}"?\n\nEsta acción eliminará también todos sus pagos registrados y no se puede deshacer.`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/clientes/${clienteId}`, {
+            method: 'DELETE'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            mostrarAlerta('Cliente eliminado correctamente', 'success');
+            // Recargar después de un breve delay
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            mostrarAlerta('Error: ' + result.mensaje, 'danger');
+        }
+    } catch (error) {
+        mostrarAlerta('Error de conexión: ' + error.message, 'danger');
+    }
+}
+
+function filtrarPorEstado(estado) {
+    // Implementar filtrado por estado si es necesario
+    // Por ahora recarga la página con parámetro de filtro
+    if (estado) {
+        window.location.href = `/clientes?estado=${estado}`;
+    } else {
+        window.location.href = '/clientes';
+    }
+}
+
+function toggleValorPropiedad() {
+    const selectElement = document.getElementById('tiene_propiedad');
+    const filaValor = document.getElementById('fila-valor-propiedad');
+    const inputValor = document.getElementById('valor_propiedad');
+    
+    // Validar que los elementos existan
+    if (!selectElement || !filaValor || !inputValor) {
+        console.warn('No se pudieron encontrar los elementos del formulario');
+        return;
+    }
+    
+    const tienePropiedad = selectElement.value === 'true';
+    
+    if (tienePropiedad) {
+        filaValor.style.display = 'block';
+        inputValor.required = true;
+    } else {
+        filaValor.style.display = 'none';
+        inputValor.required = false;
+        inputValor.value = '';
+    }
+}
+
+function mostrarAlerta(mensaje, tipo) {
+    // Crear alerta temporal
+    const alerta = document.createElement('div');
+    alerta.className = `alert alert-${tipo} alert-dismissible fade show position-fixed`;
+    alerta.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alerta.innerHTML = `
+        ${mensaje}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alerta);
+    
+    // Auto-eliminar después de 5 segundos
+    setTimeout(() => {
+        if (alerta.parentNode) {
+            alerta.remove();
+        }
+    }, 5000);
+}
+
+// Mejorar la función original para usar el modal
+function mostrarFormulario() {
+    mostrarModalAgregar();
+}
+
+// Mantener compatibilidad con la función original
+async function agregarCliente(event) {
+    event.preventDefault();
+    
+    const cliente = {
+        nombre: document.getElementById('nombre').value,
+        email: document.getElementById('email').value,
+        estado_actual: document.getElementById('estado_actual').value
+    };
+    
+    const response = await fetch('/api/clientes', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(cliente)
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+        mostrarAlerta('Cliente agregado correctamente', 'success');
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+    } else {
+        mostrarAlerta('Error: ' + result.mensaje, 'danger');
+    }
+}
+</script>
+{% endblock %}
